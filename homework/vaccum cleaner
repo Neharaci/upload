@@ -1,0 +1,51 @@
+def main():
+    print("Vacuum Cleaner Robot Control.")
+    shapes = {
+        1: ("Circle", "Fine Dust"),
+        2: ("Square", "Large Debris"),
+        3: ("Triangle", "Liquid Spills"),
+        4: ("Hexagon", "Mixed Cleaning")
+    }
+
+    # Show shape choices
+    for key, value in shapes.items():
+        print(f"{key}. {value[0]} (Best for {value[1]})")
+
+    shape_choice = input("Choose your vacuum shape between 1 to 4 : ")
+    if not shape_choice.isdigit() or int(shape_choice) not in shapes:
+        print("Sorry, that's not a valid option.")
+        return
+    shape, job = shapes[int(shape_choice)]
+    print(f"\nShape selected: {shape}")
+    print(f"Recommended for: {job}")
+    print("-" * 35)
+
+
+    while True:
+        print("\nAvailable commands:")
+        print("1. Start Cleaning")
+        print("2. Stop Cleaning")
+        print("3. Turn Left")
+        print("4. Turn Right")
+        print("5. Return to Dock")
+        print("6. Quit Program")
+        cmd = input("Enter command (1-6): ")
+
+        if cmd == "1":
+            print(f">> {shape} vacuum is now cleaning ({job.lower()}).")
+        elif cmd == "2":
+            print(f">> {shape} vacuum paused.")
+        elif cmd == "3":
+            print(f">> Turning left to clean more {job.lower()}.")
+        elif cmd == "4":
+            print(f">> Turning right to clean more {job.lower()}.")
+        elif cmd == "5":
+            print(">> Docking... Charging battery!")
+        elif cmd == "6":
+            print(">> Program ended. Goodbye!")
+            break
+        else:
+            print("Unknown command. Please type a number from 1 to 6.")
+
+if __name__ == "__main__":
+    main()
