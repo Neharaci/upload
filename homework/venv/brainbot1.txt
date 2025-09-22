@@ -1,0 +1,103 @@
+from Flask import Flask, render_template_string, request
+import heapq
+import math
+import time
+from collections import deque
+
+app = Flask(__name__)
+
+# Coordinates for each campus location
+decimal_coordinates = {
+    "Main Gate": (12.9716, 77.5946),
+    "Admin Block": (12.9720, 77.5950),
+    "Central Junction": (12.9730, 77.5960),
+    "Academic Block 1": (12.9740, 77.5970),
+    "Academic Block 2": (12.9750, 77.5980),
+    "Academic Block 3": (12.9760, 77.5990),
+    "Food Court": (12.9770, 77.6000),
+    "Hostel": (12.9780, 77.6010),
+    "Mini Mart": (12.9790, 77.6020),
+    "Sports Complex": (12.9800, 77.6030),
+    "Laundry": (12.9810, 77.6040)
+}
+
+# Create graph with distances
+def haversine_distance(lat1, lon1, lat2, lon2):
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    r = 6371000
+    return c * r
+
+def create_campus_graph():
+    graph = {location: [] for location in decimal_coordinates.keys()}
+    connections = [
+        ("Main Gate", "Admin Block"),
+        ("Admin Block", "Central Junction"),
+        ("Central Junction", "Academic Block 1"),
+        ("Central Junction", "Academic Block 2"),
+        ("Central Junction", "Academic Block 3"),
+        ("Academic Block 2", "Food Court"),
+        ("Food Court", "Laundry"),
+        ("Food Court", "Hostel"),
+        ("Food Court", "Mini Mart"),
+        ("Hostel", "Mini Mart"),
+        ("Food Court", "Sports Complex"),
+        ("Laundry", "Hostel")
+    ]
+    for loc1, loc2 in connections:
+        lat1, lon1 = decimal_coordinates[loc1]
+        lat2, lon2 = decimal_coordinates[loc2]
+        distance = haversine_distance(lat1, lon1, lat2, lon2)
+        graph[loc1].append({'node': loc2, 'distance': round(distance, 2)})
+        graph[loc2].append({'node': loc1, 'distance': round(distance, 2)})
+    return graph
+
+campus_graph = create_campus_graph()
+
+# Search algorithms
+# BFS and DFS are not included as they are not optimal for weighted graphs
+
+def uniform_cost_search(graph, start, goal):
+    start_time = time.time()
+    queue = [(0, start, [start])]
+    visited = set()
+    explored = []
+    while queue:
+        cost, current_node, path = heapq.heappop(queue)
+        explored.append(current_node)
+        if current_node == goal:
+            return {
+                'algorithm': 'UCS',
+                'path': path,
+                'nodes_explored': len(explored),
+                'distance': cost,
+                'execution_time': time.time() - start_time,
+                'explored_nodes': explored
+            }
+        if current_node in visited:
+            continue
+        visited.add(current_node)
+        for neighbor_info in graph[current_node]:
+            neighbor = neighbor_info['node']
+            distance = neighbor_info['distance']
+            if neighbor not in visited:
+                heapq.heappush(queue, (cost + distance, neighbor, path + [neighbor]))
+    return None
+
+def euclidean_search(graph, start, goal):
+    start_time = time.time()
+    queue = [(haversine_distance(*decimal_coordinates[start], *decimal_coordinates[goal]), start, [start], 0)]
+    visited = set()
+    explored = []
+    while queue:
+        _, current_node, path, total_distance = heapq.heappop(queue)
+        explored.append(current_node)
+        if current_node == goal:
+            return {
+                'algorithm': 'A* (Euclidean)',
+                'path': path,
+                'nodes_explored': len(explored),
+                'distance':

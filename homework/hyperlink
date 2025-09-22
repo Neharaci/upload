@@ -1,0 +1,44 @@
+import time
+import BrowserUseClient from "browser_use_sdk";
+
+sdk = BrowserUseSdk(api_key="bu_7PG5oU80uWnFkkgxVfL2krN3Ajt57R3yzScgePsF0gU")
+
+task_text = """
+1. Open https://www.britannica.com/.
+2. Use the search to find "Differential Equations".
+3. Click on the Differential Equations article.
+4. Follow the hyperlink to "Ordinary Differential Equation".
+5. Go to "Initial Conditions" from there.
+6. Visit the page for "Boundary Conditions".
+After each step, briefly note what is found on that page.
+"""
+
+# Step 1: Submit the task
+response = sdk.tasks.create_task(task_text)
+print("Task submitted. Response:")
+print(response)
+
+# Make sure you extract the right field for the task id:
+# Might be response["id"], response["task_id"], etc.
+task_id = response.get("id") or response.get("task_id")
+
+if not task_id:
+    print("Could not find task ID in response.")
+    exit()
+
+# Step 2: Poll for completion
+while True:
+    task_info = sdk.tasks.get_task(task_id)
+    status = task_info.get("status")
+    print(f"Task status: {status}")
+    if status == "completed":
+        # The exact field for output might be 'result', 'output', or similar
+        result = task_info.get("result") or task_info.get("output")
+        print("\nFinal result:")
+        print(result)
+        break
+    elif status == "failed":
+        print("Task failed.")
+        break
+    # Wait 5 seconds before checking again
+    time.sleep(5)
